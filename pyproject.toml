@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "dbt_sync_server"
+version = "0.1.0"
+description = "Server which abstracts RPC and simplifies SQL execution and compilation"
+authors = ["Alex Butler"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Flask = "^1"
+dbt-client = "^0.1.2"
+click = "^8.0.4"
+dbt-rpc = "^0.1.1"
+dbt-core = ">1.0.1"
+itsdangerous = "2.0.1" 
+
+[tool.poetry.dev-dependencies]
+dbt-sqlite = "^1.0.0"
+
+[tool.poetry.scripts]
+dbt_sync_server = "dbt_sync_server:serve"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
