@@ -3,15 +3,15 @@ A super lightweight abstraction of the dbt rpc which serves out synchronous requ
 and affords more customization. Should also afford us the ability to swap the RPC
 with another solution like `dbt.lib` which dbt server may implicitly use.
 """
-from email.policy import default
 from typing import Dict
 import multiprocessing
 import subprocess
 import time
 
 from flask import Flask, request
-from dbt_client import DbtClient
 import click
+
+from .dbt_rpc_client import DbtClient, RPCError
 
 
 app = Flask(__name__)
@@ -32,9 +32,9 @@ def run_sql():
     print(LOG_MSG.format(action="RUNNING", query=request.data))
     try:
         # Lets consider memoization
-        result = STATE["server"].run_sql("dbt-osmosis", f'SELECT * FROM ({request.data.decode("UTF-8")}) AS __rpc_query LIMIT 2000', sync=True)
-    except Exception as err:
-        return {"error": str(err)}
+        result = STATE["server"].run_sql("dbt-sync-server", f'SELECT * FROM ({request.data.decode("UTF-8")}) AS __rpc_query LIMIT 2000', sync=True)
+    except RPCError as rpc_err:
+        return rpc_err.response
     else:
         return result["result"]["results"][0]["table"]
 
@@ -45,9 +45,9 @@ def compile_sql():
     print(LOG_MSG.format(action="COMPILING", query=request.data))
     try:
         # Lets consider memoization
-        result = STATE["server"].compile_sql("dbt-osmosis", request.data.decode("UTF-8"), sync=True)
-    except Exception as err:
-        return {"error": str(err)}
+        result = STATE["server"].compile_sql("dbt-sync-server", request.data.decode("UTF-8"), sync=True)
+    except RPCError as rpc_err:
+        return rpc_err.response
     else:
         return {"result": result["result"]["results"][0]["compiled_sql"]}
 
@@ -69,7 +69,7 @@ def cli():
 @click.option("--port", type=click.INT, default=8581)
 @click.option("--rpc-port", type=click.INT, default=8580)
 @click.option("--project-dir", type=click.Path(exists=True, file_okay=False, dir_okay=True), default="./")
-@click.option("--inject-rpc", type=click.BOOL, default=False)
+@click.option("--inject-rpc", is_flag=True, type=click.BOOL, default=False)
 def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", inject_rpc: bool = False):
     STATE["server"] = DbtClient(port=rpc_port)
     if inject_rpc:
@@ -90,7 +90,7 @@ def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", injec
         app.run("localhost", port)
     finally:
         print("\nSHUTDOWN")
-        if rpc_server.is_alive():
+        if inject_rpc and rpc_server.is_alive():
             print("CLEANING UP RPC")
             rpc_server.terminate()
             rpc_server.join()
