@@ -36,7 +36,11 @@ def run_sql():
     except RPCError as rpc_err:
         return rpc_err.response
     else:
-        return result["result"]["results"][0]["table"]
+        return {
+            **result["result"]["results"][0]["table"], 
+            "compiled_sql": result["result"]["results"][0]["compiled_sql"],
+            "raw_sql": result["result"]["results"][0]["raw_sql"],
+        }
 
 
 @app.route("/compile", methods=["POST"])
