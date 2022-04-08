@@ -7,6 +7,7 @@ from typing import Dict
 import multiprocessing
 import subprocess
 import time
+from pathlib import Path
 
 from flask import Flask, request
 import click
@@ -100,6 +101,19 @@ def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", injec
             rpc_server.join()
             rpc_server.close()
 
+
+@cli.command()
+def build_shell_scripts():
+    """Build shell scripts in local directory. These handle spinning up the server and
+    setting up a cron job which will reparse dbt project as needed. Invoke the from the
+    main dbt project directory. It includes a kill server script too which will clean up both the 
+    RPC and the wrapper."""
+    run_server = Path(__file__).parent.parent.parent / "bin" / "run_server.sh"
+    kill_server = Path(__file__).parent.parent.parent / "bin" / "kill_server.sh"
+    with open("./kill_server.sh", "w") as run_server_target, open(run_server, "r") as run_server_script:
+        run_server_target.writelines(run_server_script.readlines())
+    with open("./run_server.sh", "w") as kill_server_target, open(kill_server, "r") as kill_server_script:
+        kill_server_target.writelines(kill_server_script.readlines())
 
 
 if __name__ == "__main__":

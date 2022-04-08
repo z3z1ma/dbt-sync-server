@@ -18,7 +18,7 @@ Werkzeug = "<2"
 dbt-sqlite = "^1.0.0"
 
 [tool.poetry.scripts]
-dbt-sync-server = "dbt_sync_server:serve"
+dbt-sync-server = "dbt_sync_server:cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
