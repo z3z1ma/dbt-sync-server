@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_sync_server"
-version = "0.1.0"
+version = "0.2.0"
 description = "Server which abstracts RPC and simplifies SQL execution and compilation"
 authors = ["Alex Butler"]
 license = "MIT"
