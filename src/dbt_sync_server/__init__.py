@@ -57,6 +57,35 @@ def compile_sql():
         return {"result": result["result"]["results"][0]["compiled_sql"]}
 
 
+@app.route("/api/health", methods=["GET"])
+def health_check(raise_on_error: bool = False) -> Dict[str, str]:
+    """Example response
+    {
+    "result": {
+        "status": "ready",
+        "error": null,
+        "logs": [..],
+        "timestamp": "2019-10-07T16:30:09.875534Z",
+        "pid": 76715
+    },
+    "id": "2db9a2fe-9a39-41ef-828c-25e04dd6b07d",
+    "jsonrpc": "2.0"
+    }"""
+    try:
+        result = STATE["server"].status()
+    except RPCError as rpc_err:
+        if raise_on_error:
+            raise ConnectionError from rpc_err
+        return rpc_err.response
+    except Exception as exc:
+        # Catch alternate errors
+        if raise_on_error:
+            raise ConnectionError from exc
+        return {"error": f"Unknown error has occured: {str(exc)}"}
+    else:
+        return result
+
+
 def run_rpc(rpc_port: int = 8580, project_dir: str = "./"):
     print(f"Starting RPC on port {rpc_port}")
     try:
@@ -74,10 +103,10 @@ def cli():
 @click.option("--port", type=click.INT, default=8581)
 @click.option("--rpc-port", type=click.INT, default=8580)
 @click.option("--project-dir", type=click.Path(exists=True, file_okay=False, dir_okay=True), default="./")
-@click.option("--inject-rpc", is_flag=True, type=click.BOOL, default=False)
-def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", inject_rpc: bool = False):
+@click.option("--no-inject-rpc", is_flag=True, type=click.BOOL, default=False)
+def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", no_inject_rpc: bool = False):
     STATE["server"] = DbtClient(port=rpc_port)
-    if inject_rpc:
+    if not no_inject_rpc:
         rpc_server = multiprocessing.Process(target=run_rpc, args=(rpc_port, project_dir), daemon=True)
         rpc_server.start()
         time.sleep(2.5)
@@ -92,10 +121,11 @@ def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", injec
                 print("RPC failed to initialize, exit code {} with unknown root cause.".format(exit_code))
             exit(1)
     try:
+        health_check(raise_on_error=True)  # ping RPC to gaurantee connectivity before starting flask app
         app.run("localhost", port)
     finally:
         print("\nSHUTDOWN")
-        if inject_rpc and rpc_server.is_alive():
+        if not no_inject_rpc and rpc_server.is_alive():
             print("CLEANING UP RPC")
             rpc_server.terminate()
             rpc_server.join()
