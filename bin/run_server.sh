@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # RUN SERVER
-dbt_sync_server --inject-rpc &
+dbt-sync-server serve > dbt_sync.log 2>&1 &
 
 # CAPTURE PIDs
 echo $! >/tmp/dbt_sync_server.pid
