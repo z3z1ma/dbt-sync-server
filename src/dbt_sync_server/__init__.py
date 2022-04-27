@@ -89,7 +89,8 @@ def health_check(raise_on_error: bool = False) -> Dict[str, str]:
 def run_rpc(rpc_port: int = 8580, project_dir: str = "./"):
     print(f"Starting RPC on port {rpc_port}")
     try:
-        subprocess.run(["dbt-rpc", "serve", "--port", str(rpc_port), "--project-dir", str(project_dir)])
+        with open("dbt_rpc.log", "w") as f:
+            subprocess.run(["dbt-rpc", "serve", "--port", str(rpc_port), "--project-dir", str(project_dir)], stdout=f, stderr=subprocess.STDOUT)
     except Exception as err:
         print("RPC Terminated? Error: {}".format(str(err)))
 
