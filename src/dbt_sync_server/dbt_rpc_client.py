@@ -4,7 +4,7 @@ Provides the main class for the dbt client.
 
 import base64
 from re import L
-from time import time, sleep
+from time import sleep, time
 from typing import Callable, Dict, List, Union
 from uuid import uuid1
 
@@ -44,12 +44,7 @@ class DbtClient:
         self._jsonrpc_version = jsonrpc_version
         self._url = f"http://{self._host}:{self._port}/jsonrpc"
 
-    def _request(
-        self,
-        method: str,
-        *,
-        params: dict = None
-    ) -> dict:
+    def _request(self, method: str, *, params: dict = None) -> dict:
         """
         Makes a request to the dbt server.
         """
@@ -84,11 +79,14 @@ class DbtClient:
 
         Docs: https://docs.getdbt.com/reference/commands/rpc#poll
         """
-        return self._request("poll", params={
-            "request_token": request_token,
-            "logs": logs,
-            "logs_start": logs_start,
-        })
+        return self._request(
+            "poll",
+            params={
+                "request_token": request_token,
+                "logs": logs,
+                "logs_start": logs_start,
+            },
+        )
 
     def ps(  # pylint: disable=invalid-name
         self,
@@ -100,9 +98,12 @@ class DbtClient:
 
         Docs: https://docs.getdbt.com/reference/commands/rpc#ps
         """
-        return self._request("ps", params={
-            "completed": completed,
-        })
+        return self._request(
+            "ps",
+            params={
+                "completed": completed,
+            },
+        )
 
     def kill(
         self,
@@ -114,9 +115,12 @@ class DbtClient:
 
         Docs: https://docs.getdbt.com/reference/commands/rpc#kill
         """
-        return self._request("kill", params={
-            "task_id": task_id,
-        })
+        return self._request(
+            "kill",
+            params={
+                "task_id": task_id,
+            },
+        )
 
     def _run_sync(
         self,
@@ -144,13 +148,10 @@ class DbtClient:
             max_time = time() + timeout
             params["timeout"] = timeout
 
-        if (
-            (timeout_action not in ["raise", "return"])
-            and
-            (not callable(timeout_action))
+        if (timeout_action not in ["raise", "return"]) and (
+            not callable(timeout_action)
         ):
-            raise ValueError(
-                "timeout_action must be 'raise', 'return' or a callable")
+            raise ValueError("timeout_action must be 'raise', 'return' or a callable")
 
         response_data = self._request(method, params=params)
         if "result" in response_data:
@@ -158,11 +159,13 @@ class DbtClient:
                 request_token = response_data["result"]["request_token"]
             else:
                 raise RPCError(
-                    response_data, f"Unknown response format for sync execution: {response_data}"
+                    response_data,
+                    f"Unknown response format for sync execution: {response_data}",
                 )
         else:
             raise RPCError(
-                response_data, f"Unknown response format for sync execution: {response_data}"
+                response_data,
+                f"Unknown response format for sync execution: {response_data}",
             )
 
         state = None
@@ -184,11 +187,13 @@ class DbtClient:
                     state = response_data["result"]["state"]
                 else:
                     raise RPCError(
-                        response_data, f"Unknown response format for sync execution: {response_data}"
+                        response_data,
+                        f"Unknown response format for sync execution: {response_data}",
                     )
             else:
                 raise RPCError(
-                    response_data, f"Unknown response format for sync execution: {response_data}"
+                    response_data,
+                    f"Unknown response format for sync execution: {response_data}",
                 )
             if state == "success":
                 return response_data
@@ -221,11 +226,8 @@ class DbtClient:
             - timeout_action (str, optional): The action to take if the command times out. Only
                 applies to sync mode.
         """
-        command = command if not command.startswith(
-            "dbt") else command[3:].strip()
-        params = {
-            "cli": command
-        }
+        command = command if not command.startswith("dbt") else command[3:].strip()
+        params = {"cli": command}
         if timeout:
             params["timeout"] = timeout
         if task_tags:
@@ -357,9 +359,7 @@ class DbtClient:
         """
 
         if defer is not None and state is None:
-            raise Exception(
-                "`defer` requires `state` to be set"
-            )
+            raise Exception("`defer` requires `state` to be set")
 
         exclude_str = " ".join(exclude) if exclude else None
         select_str = " ".join(select) if select else None
