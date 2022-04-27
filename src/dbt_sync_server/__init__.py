@@ -16,7 +16,7 @@ from .dbt_rpc_client import DbtClient, RPCError
 
 
 app = Flask(__name__)
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 STATE: Dict[str, DbtClient] = {}
 
