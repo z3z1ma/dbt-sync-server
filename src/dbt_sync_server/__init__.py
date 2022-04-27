@@ -32,8 +32,8 @@ def run_sql():
     # Server Logging
     print(LOG_MSG.format(action="RUNNING", query=request.data))
     try:
-        # Lets consider memoization
-        result = STATE["server"].run_sql("dbt-sync-server", f'SELECT * FROM ({request.data.decode("UTF-8")}) AS __rpc_query LIMIT 2000', sync=True)
+        # TODO: Lets consider memoization, also make the limit parameterizable
+        result = STATE["server"].run_sql("dbt-sync-server", f'SELECT * FROM ({request.data.decode("UTF-8")}) AS __rpc_query LIMIT 200', sync=True)
     except RPCError as rpc_err:
         return rpc_err.response
     else:

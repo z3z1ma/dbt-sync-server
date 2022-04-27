@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_sync_server"
-version = "0.2.0"
+version = "0.2.2"
 description = "Server which abstracts RPC and simplifies SQL execution and compilation"
 authors = ["Alex Butler"]
 license = "MIT"
@@ -16,6 +16,7 @@ Werkzeug = "<2"
 
 [tool.poetry.dev-dependencies]
 dbt-sqlite = "^1.0.0"
+dbt-bigquery = "^1.0.0"
 
 [tool.poetry.scripts]
 dbt-sync-server = "dbt_sync_server:cli"
