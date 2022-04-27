@@ -16,7 +16,7 @@ from .dbt_rpc_client import DbtClient, RPCError
 
 
 app = Flask(__name__)
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 STATE: Dict[str, DbtClient] = {}
 
@@ -111,8 +111,14 @@ def serve(port: int = 8581, rpc_port: int = 8580, project_dir: str = "./", no_in
     if not no_inject_rpc:
         rpc_server = multiprocessing.Process(target=run_rpc, args=(rpc_port, project_dir), daemon=True)
         rpc_server.start()
+        ping_count = 0
         time.sleep(2.5)
-        if not rpc_server.is_alive():
+        while not rpc_server.is_alive():
+            if ping_count > 3:
+                break
+            ping_count += 1
+            time.sleep(2.5)
+        if ping_count > 3:
             exit_code = rpc_server.exitcode
             rpc_server.close()
             if exit_code == 0:
