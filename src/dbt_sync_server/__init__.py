@@ -16,7 +16,7 @@ from .dbt_rpc_client import DbtClient, RPCError
 
 
 app = Flask(__name__)
-
+__version__ = "0.2.3"
 
 STATE: Dict[str, DbtClient] = {}
 
@@ -96,6 +96,7 @@ def run_rpc(rpc_port: int = 8580, project_dir: str = "./"):
 
 
 @click.group()
+@click.version_option(__version__)
 def cli():
     pass
 
