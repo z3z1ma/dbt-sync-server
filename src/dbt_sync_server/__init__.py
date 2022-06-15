@@ -144,6 +144,7 @@ def serve(
     project_dir: str = "./",
     profiles_dir: str = "~/.dbt",
     profile: str = "default",
+    target: str = "dev",
     no_inject_rpc: bool = False,
 ):
     STATE["server"] = DbtClient(port=rpc_port)
