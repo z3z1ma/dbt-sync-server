@@ -135,8 +135,8 @@ def cli():
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     default="~/.dbt",
 )
-@click.option("--profile", type=click.SRC, default="default")
-@click.option("--target", type=click.SRC, default="dev")
+@click.option("--profile", type=click.STRING, default="default")
+@click.option("--target", type=click.STRING, default="dev")
 @click.option("--no-inject-rpc", is_flag=True, type=click.BOOL, default=False)
 def serve(
     port: int = 8581,
