@@ -90,7 +90,7 @@ def health_check(raise_on_error: bool = False) -> Dict[str, str]:
         return result
 
 
-def run_rpc(rpc_port: int = 8580, project_dir: str, profiles_dir: str, profile: str, target: str):
+def run_rpc(rpc_port: int, project_dir: str, profiles_dir: str, profile: str, target: str):
     print(f"Starting RPC port:{rpc_port} project_dir:{project_dir} profiles_dir:{profiles_dir} profile:{profile} target:{target}")  # noqa
     try:
         with open("dbt_rpc.log", "w") as f:
@@ -105,7 +105,7 @@ def run_rpc(rpc_port: int = 8580, project_dir: str, profiles_dir: str, profile: 
                     "--profiles-dir",
                     str(profiles_dir),
                     "--profile",
-                    str(profile)
+                    str(profile),
                     "--target",
                     str(target)
                 ],
