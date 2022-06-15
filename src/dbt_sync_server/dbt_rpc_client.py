@@ -77,13 +77,25 @@ class DbtClient:
         if self.pid:
             return self.pid
 
-        proc1 = subprocess.Popen(['ps', 'aux'], stdout=subprocess.PIPE)
-        proc2 = subprocess.Popen(['grep', 'dbt-rpc'], stdin=proc1.stdout,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc3 = subprocess.Popen(['grep', '-v', 'grep'], stdin=proc2.stdout,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc4 = subprocess.Popen(['awk', "{print $2}"], stdin=proc3.stdout,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc1 = subprocess.Popen(["ps", "aux"], stdout=subprocess.PIPE)
+        proc2 = subprocess.Popen(
+            ["grep", "dbt-rpc"],
+            stdin=proc1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc3 = subprocess.Popen(
+            ["grep", "-v", "grep"],
+            stdin=proc2.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc4 = subprocess.Popen(
+            ["awk", "{print $2}"],
+            stdin=proc3.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         proc1.stdout.close()
         proc2.stdout.close()
         proc3.stdout.close()

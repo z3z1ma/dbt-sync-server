@@ -90,8 +90,12 @@ def health_check(raise_on_error: bool = False) -> Dict[str, str]:
         return result
 
 
-def run_rpc(rpc_port: int, project_dir: str, profiles_dir: str, profile: str, target: str):
-    print(f"Starting RPC port:{rpc_port} project_dir:{project_dir} profiles_dir:{profiles_dir} profile:{profile} target:{target}")  # noqa
+def run_rpc(
+    rpc_port: int, project_dir: str, profiles_dir: str, profile: str, target: str
+):
+    print(
+        f"Starting RPC port:{rpc_port} project_dir:{project_dir} profiles_dir:{profiles_dir} profile:{profile} target:{target}"
+    )  # noqa
     try:
         with open("dbt_rpc.log", "w") as f:
             subprocess.run(
@@ -107,7 +111,7 @@ def run_rpc(rpc_port: int, project_dir: str, profiles_dir: str, profile: str, ta
                     "--profile",
                     str(profile),
                     "--target",
-                    str(target)
+                    str(target),
                 ],
                 stdout=f,
                 stderr=subprocess.STDOUT,
@@ -150,7 +154,9 @@ def serve(
     STATE["server"] = DbtClient(port=rpc_port)
     if not no_inject_rpc:
         rpc_server = multiprocessing.Process(
-            target=run_rpc, args=(rpc_port, project_dir, profiles_dir, profile, target), daemon=True
+            target=run_rpc,
+            args=(rpc_port, project_dir, profiles_dir, profile, target),
+            daemon=True,
         )
         rpc_server.start()
         time.sleep(2.5)
