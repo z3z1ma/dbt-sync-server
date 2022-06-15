@@ -3,10 +3,14 @@ Provides the main class for the dbt client.
 """
 
 import base64
+import subprocess
+import os, signal
+
 from re import L
 from time import sleep, time
 from typing import Callable, Dict, List, Union
 from uuid import uuid1
+
 
 import requests
 
@@ -42,6 +46,8 @@ class DbtClient:
         self._host = host
         self._port = port
         self._jsonrpc_version = jsonrpc_version
+        self.pid = None
+        self.session = requests.Session()
         self._url = f"http://{self._host}:{self._port}/jsonrpc"
 
     def _request(self, method: str, *, params: dict = None) -> dict:
@@ -56,8 +62,47 @@ class DbtClient:
             "params": params,
             "id": str(uuid1()),
         }
-        response = requests.post(self._url, json=data)
+        pid = self._get_pid()
+
+        if method == "run_sql":
+            print(f"Method: {method}, send HUP to {self.pid}")
+            os.kill(self.pid, signal.SIGHUP)
+            sleep(DEFAULT_SYNC_SLEEP)
+
+        response = self.session.post(self._url, json=data)
         return response.json()
+
+    def _get_pid(self) -> int:
+
+        if self.pid:
+            return self.pid
+
+        proc1 = subprocess.Popen(["ps", "aux"], stdout=subprocess.PIPE)
+        proc2 = subprocess.Popen(
+            ["grep", "dbt-rpc"],
+            stdin=proc1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc3 = subprocess.Popen(
+            ["grep", "-v", "grep"],
+            stdin=proc2.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc4 = subprocess.Popen(
+            ["awk", "{print $2}"],
+            stdin=proc3.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc1.stdout.close()
+        proc2.stdout.close()
+        proc3.stdout.close()
+        out, err = proc4.communicate()
+        self.pid = int(out.strip().decode())
+
+        return self.pid
 
     def status(self) -> dict:
         """

@@ -90,8 +90,12 @@ def health_check(raise_on_error: bool = False) -> Dict[str, str]:
         return result
 
 
-def run_rpc(rpc_port: int = 8580, project_dir: str = "./"):
-    print(f"Starting RPC on port {rpc_port}")
+def run_rpc(
+    rpc_port: int, project_dir: str, profiles_dir: str, profile: str, target: str
+):
+    print(
+        f"Starting RPC port:{rpc_port} project_dir:{project_dir} profiles_dir:{profiles_dir} profile:{profile} target:{target}"
+    )  # noqa
     try:
         with open("dbt_rpc.log", "w") as f:
             subprocess.run(
@@ -102,6 +106,12 @@ def run_rpc(rpc_port: int = 8580, project_dir: str = "./"):
                     str(rpc_port),
                     "--project-dir",
                     str(project_dir),
+                    "--profiles-dir",
+                    str(profiles_dir),
+                    "--profile",
+                    str(profile),
+                    "--target",
+                    str(target),
                 ],
                 stdout=f,
                 stderr=subprocess.STDOUT,
@@ -124,17 +134,29 @@ def cli():
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     default="./",
 )
+@click.option(
+    "--profiles-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    default="~/.dbt",
+)
+@click.option("--profile", type=click.STRING, default="default")
+@click.option("--target", type=click.STRING, default="dev")
 @click.option("--no-inject-rpc", is_flag=True, type=click.BOOL, default=False)
 def serve(
     port: int = 8581,
     rpc_port: int = 8580,
     project_dir: str = "./",
+    profiles_dir: str = "~/.dbt",
+    profile: str = "default",
+    target: str = "dev",
     no_inject_rpc: bool = False,
 ):
     STATE["server"] = DbtClient(port=rpc_port)
     if not no_inject_rpc:
         rpc_server = multiprocessing.Process(
-            target=run_rpc, args=(rpc_port, project_dir), daemon=True
+            target=run_rpc,
+            args=(rpc_port, project_dir, profiles_dir, profile, target),
+            daemon=True,
         )
         rpc_server.start()
         time.sleep(2.5)
